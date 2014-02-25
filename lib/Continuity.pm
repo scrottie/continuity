@@ -225,6 +225,7 @@ use Coro;
 use HTTP::Status; # to grab static response codes. Probably shouldn't be here
 use Continuity::RequestHolder;
 use List::Util 'first';
+use Cwd;
 
 sub debug_level :lvalue { $_[0]->{debug_level} }         # Debug level (integer)
 sub adapter :lvalue { $_[0]->{adapter} }
@@ -247,7 +248,7 @@ Arguments:
 
 =item * C<mapper> -- defaults to an instance of C<Continuity::Mapper>
 
-=item * C<docroot> -- defaults to C<.>
+=item * C<docroot> -- defaults to whatever C<Cwd::getcwd> says
 
 =item * C<staticp> -- defaults to C<< sub { $_[0]->url =~ m/\.(jpg|jpeg|gif|png|css|ico|js)$/ } >>, used to indicate whether any request is for static content
 
@@ -296,7 +297,7 @@ sub new {
 
   no strict 'refs';
   my $self = bless { 
-    docroot => '.',   # default docroot
+    docroot => Cwd::getcwd(),   # default docroot
     mapper => undef,
     adapter => undef,
     debug_level => 1,
