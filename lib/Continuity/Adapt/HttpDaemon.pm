@@ -260,12 +260,20 @@ sub param {
     my $req = $self->http_request;
     unless($self->cached_params) {
       $self->cached_params( do {
-        my $in = $req->uri; $in .= '&' . $req->content if $req->content;
+        my $in = $req->uri; 
+        if( $in =~ m/\?/ ) {
+            # get rid of the path part; should be using the URI class for this
+            $in =~ s{^.*?\?}{}; 
+        } else {
+            # no param part at all, so empty the whole thing to get rid of the path part (which at least contains '/')
+            $in = '';
+        }
+        $in .= '&' . $req->content if $req->content; # # XXX doesn't do mime stuff as used by "multipart/form-data" (versus the older "application/x-www-form-urlencoded")
         $in =~ s{^.*\?}{};
         my @params;
-        for(split/[&]/, $in) { 
+        for(split m/[&;]/, $in) { 
             tr/+/ /; 
-            s{%(..)}{pack('c',hex($1))}ge; 
+            s{%(..)}{pack('C',hex($1))}ge; 
             my($k, $v); ($k, $v) = m/(.*?)=(.*)/s or ($k, $v) = ($_, 1);
             push @params, $k, $v; 
         };
